@@ -9,8 +9,8 @@ importers:
   .:
     dependencies:
       '@notionhq/client':
-        specifier: 5.11.1
-        version: 5.11.1
+        specifier: 5.12.0
+        version: 5.12.0
       dotenv:
         specifier: 17.3.1
         version: 17.3.1
@@ -78,6 +78,9 @@ importers:
       '@gmv/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@gmv/memory':
+        specifier: workspace:*
+        version: link:../../packages/memory
       '@gmv/notion-adapter':
         specifier: workspace:*
         version: link:../../packages/notion-adapter
@@ -689,8 +692,8 @@ packages:
   '@jridgewell/trace-mapping@0.3.31':
     resolution: {integrity: sha512-zzNR+SdQSDJzc8joaeP8QQoCQr8NuYx2dIIytl1QeBEZHJ9uW6hebsrYgbz8hJwUQao3TWCMtmfV8Nu1twOLAw==}
 
-  '@notionhq/client@5.11.1':
-    resolution: {integrity: sha512-393XUAb4706eWKQx1xxg/tdn/rTY6+qj3PxTGyTr03D7ydO6e7B7tYyidxJCbKzNSSCVTUAth/bLoKNhm0VoUQ==}
+  '@notionhq/client@5.12.0':
+    resolution: {integrity: sha512-yLdw1saMUx4lmwMXOk72QK/N0wuw9x0JuOAuAX+q2Z8IEZzB5di6SEKL6a8eNh5cy3RLKdeXaXJFF4NF2LwXDg==}
     engines: {node: '>=18'}
 
   '@pinojs/redact@0.4.0':
@@ -2130,7 +2133,7 @@ snapshots:
       '@jridgewell/resolve-uri': 3.1.2
       '@jridgewell/sourcemap-codec': 1.5.5
 
-  '@notionhq/client@5.11.1': {}
+  '@notionhq/client@5.12.0': {}
 
   '@pinojs/redact@0.4.0': {}
 

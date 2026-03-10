@@ -1,0 +1,15 @@
+{
+  "name": "@gmv/domain",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@gmv/contracts": "workspace:*",
+    "@gmv/notion-adapter": "workspace:*",
+    "@gmv/observability": "workspace:*",
+    "@gmv/queue": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

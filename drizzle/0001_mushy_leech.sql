@@ -1,0 +1,2 @@
+CREATE TYPE "public"."workflow_status" AS ENUM('queued', 'running', 'succeeded', 'failed', 'compensating', 'cancelled');--> statement-breakpoint
+ALTER TABLE "workflow_runs" ALTER COLUMN "status" SET DATA TYPE "public"."workflow_status" USING "status"::"public"."workflow_status";

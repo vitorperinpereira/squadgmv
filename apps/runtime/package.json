@@ -1,0 +1,19 @@
+{
+  "name": "@gmv/runtime",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@gmv/auth": "workspace:*",
+    "@gmv/config": "workspace:*",
+    "@gmv/contracts": "workspace:*",
+    "@gmv/domain": "workspace:*",
+    "@gmv/memory": "workspace:*",
+    "@gmv/notion-adapter": "workspace:*",
+    "@gmv/observability": "workspace:*",
+    "@gmv/queue": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/app.ts"
+  }
+}

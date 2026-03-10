@@ -1,0 +1,1 @@
+ALTER TABLE "workflow_runs" ADD COLUMN "queue_job_id" text;

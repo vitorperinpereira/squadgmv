@@ -1,0 +1,33 @@
+{
+  "name": "gmv-runtime-notion-minimal",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.31.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "tsx apps/runtime/src/server.ts",
+    "dev:worker": "tsx apps/runtime/src/worker.ts",
+    "gmv:status": "tsx bin/gmv.ts status",
+    "gmv:sync": "tsx bin/gmv.ts sync",
+    "gmv:tasks": "tsx bin/gmv.ts tasks:list",
+    "gmv:report": "tsx bin/gmv.ts report:executive",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@notionhq/client": "5.11.1",
+    "dotenv": "17.3.1",
+    "fastify": "5.8.2",
+    "pg-boss": "12.14.0",
+    "pino": "10.3.1",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@types/node": "25.3.5",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3"
+  }
+}

@@ -1,0 +1,33 @@
+{
+  "compilerOptions": {
+    "target": "ES2023",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "baseUrl": ".",
+    "paths": {
+      "@gmv/*": [
+        "packages/*/src/index.ts"
+      ]
+    },
+    "lib": [
+      "ES2023"
+    ],
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "resolveJsonModule": true,
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "useDefineForClassFields": true,
+    "forceConsistentCasingInFileNames": true,
+    "verbatimModuleSyntax": true,
+    "types": [
+      "node"
+    ]
+  },
+  "include": [
+    "apps/**/*.ts",
+    "bin/**/*.ts",
+    "packages/**/*.ts"
+  ]
+}

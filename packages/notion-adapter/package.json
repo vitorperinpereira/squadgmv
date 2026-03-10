@@ -1,0 +1,13 @@
+{
+  "name": "@gmv/notion-adapter",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "dependencies": {
+    "@gmv/config": "workspace:*",
+    "@gmv/contracts": "workspace:*"
+  },
+  "exports": {
+    ".": "./src/index.ts"
+  }
+}

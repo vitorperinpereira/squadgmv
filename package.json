@@ -1,0 +1,60 @@
+{
+  "name": "gmv-ai-company",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "packageManager": "pnpm@10.31.0",
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:api": "tsx apps/runtime/src/server.ts",
+    "dev:worker": "tsx apps/runtime/src/worker.ts",
+    "gmv:status": "tsx bin/gmv.ts status",
+    "gmv:agents": "tsx bin/gmv.ts agents:list",
+    "gmv:tasks": "tsx bin/gmv.ts tasks:list",
+    "gmv:gates": "tsx bin/gmv.ts gates:list",
+    "gmv:escalations": "tsx bin/gmv.ts escalations:list",
+    "gmv:sync": "tsx bin/gmv.ts sync",
+    "gmv:queue": "tsx bin/gmv.ts queue:stats",
+    "gmv:queue:smoke": "tsx scripts/queue-smoke-pgboss.ts",
+    "gmv:workflows": "tsx bin/gmv.ts workflows:list",
+    "gmv:memory": "tsx bin/gmv.ts memory:list",
+    "gmv:report": "tsx bin/gmv.ts report:executive",
+    "gmv:report:generate": "tsx bin/gmv.ts report:generate",
+    "gmv:report:history": "tsx bin/gmv.ts report:history",
+    "gmv:optimizations": "tsx bin/gmv.ts optimizations:list",
+    "gmv:capabilities": "tsx bin/gmv.ts capabilities:list",
+    "gmv:onboarding": "tsx bin/gmv.ts onboarding:list",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run",
+    "build": "tsc --noEmit",
+    "db:generate": "drizzle-kit generate",
+    "db:push": "drizzle-kit push",
+    "bootstrap:pnpm": "corepack prepare pnpm@10.31.0 --activate"
+  },
+  "dependencies": {
+    "@notionhq/client": "5.11.1",
+    "dotenv": "17.3.1",
+    "drizzle-orm": "0.45.1",
+    "fastify": "5.8.2",
+    "pg-boss": "12.14.0",
+    "pino": "10.3.1",
+    "postgres": "3.4.8",
+    "zod": "4.3.6"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@types/node": "25.3.5",
+    "@vitest/coverage-v8": "4.0.18",
+    "drizzle-kit": "0.31.9",
+    "eslint": "10.0.3",
+    "turbo": "2.8.14",
+    "tsx": "4.21.0",
+    "typescript": "5.9.3",
+    "typescript-eslint": "8.56.1",
+    "vitest": "4.0.18"
+  }
+}

@@ -78,6 +78,9 @@ importers:
       '@gmv/domain':
         specifier: workspace:*
         version: link:../../packages/domain
+      '@gmv/memory':
+        specifier: workspace:*
+        version: link:../../packages/memory
       '@gmv/notion-adapter':
         specifier: workspace:*
         version: link:../../packages/notion-adapter

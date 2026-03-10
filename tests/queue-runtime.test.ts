@@ -1,4 +1,5 @@
 import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { buildRuntimeApp } from "../apps/runtime/src/app.js";
 import { createRuntimeContext } from "../apps/runtime/src/bootstrap.js";
@@ -114,7 +115,7 @@ describe("queue-backed planning reconcile", () => {
         .queues.some((queue: { name: string }) => queue.name === "planning.sync-from-notion")
     ).toBe(true);
 
-    const mirrorPath = `${paths.storyMirrorDir}\\story-runtime-ready.story.md`;
+    const mirrorPath = join(paths.storyMirrorDir, "story-runtime-ready.story.md");
     const mirroredStory = await readFile(mirrorPath, "utf8");
     expect(mirroredStory).toContain("Story Runtime Queue Validation");
 

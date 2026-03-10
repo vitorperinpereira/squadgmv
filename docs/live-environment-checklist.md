@@ -1,201 +1,132 @@
 # Live Environment Checklist
 
-Documento de readiness para ambiente live do runtime GMV, baseado no codigo atual, nas stories em progresso e no estado atual de `C:\Users\Pichau\Desktop\GMV IA First\.env`.
+## Objetivo
 
-## 1. Variaveis obrigatorias para Notion e PostgreSQL/Supabase
+Separar claramente o que depende de ambiente, o que ja esta resolvido no codigo e o que ainda e uma limitacao real do runtime.
 
-### Obrigatorias para o Notion live
+## Verdade atual do repo
 
-| Variavel | Obrigatoria hoje | Uso pratico |
-| --- | --- | --- |
-| `NOTION_TOKEN` | Sim | Habilita o adapter real do Notion. Sem isso, o runtime cai no adapter desabilitado. |
-| `NOTION_PROJECTS_DATABASE_ID` | Sim | Database/data source canonico de `Projects`. Usado na projection de missoes e no sync. |
-| `NOTION_EPICS_DATABASE_ID` | Sim | Database/data source canonico de `Epics`. Usado no sync. |
-| `NOTION_STORIES_DATABASE_ID` | Sim | Database/data source canonico de `Stories`. Usado no sync e no espelhamento para `docs/stories`. |
-| `NOTION_TASKS_DATABASE_ID` | Sim | Database/data source canonico de `Tasks`. Usado no sync e nos boards/reports. |
+- o adapter do Notion so liga quando os cinco campos `NOTION_*` existem
+- `pg-boss` so fica utilizavel com `DATABASE_URL`
+- o config aceita `STATE_DRIVER=postgres`, mas o bootstrap ainda usa apenas `FileRuntimeRepository`
+- por isso, a topologia live mais segura hoje continua sendo de um processo principal em modo `combined`
+- o problema de path cross-platform do teste de queue nao esta aberto nesta revisao
 
-### Obrigatorias para PostgreSQL/Supabase live
+## Dependencias por tipo
 
-| Variavel | Obrigatoria hoje | Uso pratico |
-| --- | --- | --- |
-| `DATABASE_URL` | Sim para live queue | String de conexao PostgreSQL usada pelo `pg-boss` e pelo `drizzle.config.ts`. Sem isso nao existe fila live. |
-| `QUEUE_DRIVER` | Sim para live queue | Deve ficar em `pg-boss` para validar a story 2.2 com fila real. Se continuar `inline`, a fila live continua bloqueada. |
+| Dependencia | O que habilita | O que acontece sem ela | Classificacao |
+| --- | --- | --- | --- |
+| `NOTION_TOKEN` + 4 IDs `NOTION_*` | projection, sync e governance sync-back live | `/health` mostra `notion.enabled: false` e o adapter fica desabilitado | ambiente |
+| `DATABASE_URL` | queue duravel com `pg-boss` | fila live nao sobe de forma util | ambiente |
+| `QUEUE_DRIVER=pg-boss` | queue PostgreSQL real | runtime fica em `inline` | ambiente |
+| `STATE_DRIVER=postgres` | seria a base para split `api + worker` | hoje nao fecha o fluxo sozinho porque nao existe repository postgres no runtime | codigo |
+| `SUPABASE_*` | padronizacao do ambiente Supabase | nao bloqueia o core atual | ambiente opcional |
+| `SENTRY_DSN` | observabilidade externa | nao bloqueia o core atual | ambiente opcional |
 
-### Recomendadas para Supabase
+## O que quebra sem `.env`
 
-| Variavel | Obrigatoria hoje | Uso pratico |
-| --- | --- | --- |
-| `SUPABASE_URL` | Nao para as stories citadas | Presente no config, util para padronizar o ambiente Supabase. O runtime atual nao consome essa chave para desbloquear 1.3, 1.4, 1.5, 2.2, 2.4 ou 4.2. |
-| `SUPABASE_ANON_KEY` | Nao para as stories citadas | Presente no config, mas nao e usada pelos fluxos live hoje. |
-| `SUPABASE_SERVICE_ROLE_KEY` | Nao para as stories citadas | Presente no config, mas nao e usada pelos fluxos live hoje. |
+### Sem Notion live
 
-### Variavel operacional que precisa de atencao
+- `projectMission()` nao projeta no workspace real
+- `pnpm gmv:sync` falha com adapter desabilitado
+- `docs/stories` nao recebe mirror vindo do workspace real
 
-| Variavel | Estado recomendado hoje | Motivo |
-| --- | --- | --- |
-| `STATE_DRIVER` | `file` | O config aceita `postgres`, mas o bootstrap atual ainda instancia `FileRuntimeRepository` diretamente. Trocar para `postgres` hoje nao liga persistencia live real. |
+### Sem PostgreSQL live
 
-## 2. O que ja existe hoje no `.env` sem expor valores
+- `QUEUE_DRIVER=pg-boss` nao fica operacional
+- `pnpm gmv:queue:smoke` nao fecha a validacao real
 
-### Variaveis presentes e preenchidas
+### Sem um path persistente para estado
 
-- `NODE_ENV`
-- `AIOX_VERSION`
+- o runtime pode iniciar, mas voce arrisca perder o estado em restart
+- isso afeta missoes, planning items, approvals, validations, workflows e snapshots
 
-### Variaveis presentes, mas vazias
+## O que hoje e bug ou limitacao real de codigo
 
-- `DEEPSEEK_API_KEY`
-- `OPENROUTER_API_KEY`
-- `ANTHROPIC_API_KEY`
-- `OPENAI_API_KEY`
-- `EXA_API_KEY`
-- `CONTEXT7_API_KEY`
-- `SUPABASE_URL`
-- `SUPABASE_ANON_KEY`
-- `SUPABASE_SERVICE_ROLE_KEY`
-- `GITHUB_TOKEN`
-- `CLICKUP_API_KEY`
-- `N8N_API_KEY`
-- `N8N_WEBHOOK_URL`
-- `SENTRY_DSN`
-- `RAILWAY_TOKEN`
-- `VERCEL_TOKEN`
+### Limitacao real
 
-### Variaveis que faltam no `.env` atual, mas ja existem no `.env.example`
+- `STATE_DRIVER=postgres` ainda nao conecta um repository postgres de verdade
+- split seguro `api + worker` depende dessa evolucao
 
-- `DATABASE_URL`
-- `PORT`
-- `LOG_LEVEL`
-- `STATE_DRIVER`
-- `QUEUE_DRIVER`
-- `GMV_STATE_FILE`
-- `STORY_MIRROR_DIR`
-- `NOTION_TOKEN`
-- `NOTION_PROJECTS_DATABASE_ID`
-- `NOTION_EPICS_DATABASE_ID`
-- `NOTION_STORIES_DATABASE_ID`
-- `NOTION_TASKS_DATABASE_ID`
+### Nao e bug aberto nesta revisao
 
-## 3. O que falta para destravar as stories
+- `tests/queue-runtime.test.ts` ja usa `path.join`
+- helpers de teste, smoke script e story mirror tambem usam APIs corretas de path
 
-| Story | O que falta de ambiente | O que ainda nao e so ambiente |
-| --- | --- | --- |
-| `1.3` | Preencher `NOTION_TOKEN` + 4 IDs canonicos do Notion e compartilhar as databases/data sources com a integracao. | Validar a projection com credenciais reais e databases reais. |
-| `1.4` | Mesmo pacote do Notion da story 1.3. Tambem e necessario que `Projects`, `Epics`, `Stories` e `Tasks` existam no workspace canonico com relacoes e propriedades compativeis com o adapter. | Validacao manual live do refinamento por C-levels no Notion canonico. |
-| `1.5` | Mesmo pacote do Notion da story 1.4, porque boards e drilldown dependem de planning items sincronizados e URLs reais do Notion. | Validar boards e drilldown com objetos live do Notion. |
-| `2.2` | Preencher `DATABASE_URL` de um PostgreSQL/Supabase real e ajustar `QUEUE_DRIVER=pg-boss`. Rodar API + worker com acesso ao banco. | Retries e dead-letter ainda estao pendentes no codigo; ambiente live sozinho nao fecha toda a Definition of Done. |
-| `2.4` | Mesmo pacote do Notion da story 1.4 para que gates e entregas fiquem ligados a objetos reais. | O sync-back live de validacoes/approvals para Notion ainda esta pendente de implementacao; ambiente sozinho nao conclui a story. |
-| `4.2` | Mesmo pacote do Notion da story 1.4 para materializar links reais em KPIs e reports. | Recorrencia/agendamento ainda esta pendente se a meta for fechar a story por completo. |
+## Perfis recomendados
 
-### Schema minimo que o workspace do Notion precisa ter
+### Baseline local
 
-As quatro estruturas canonicas do Notion precisam existir e aceitar, no minimo, os campos usados hoje pelo adapter:
-
-- `Name`
-- `Runtime ID`
-- `Mission ID`
-- `Description`
-- `Sector`
-- `Priority`
-- `Process Type`
-- `Planning Status`
-- `Execution Status`
-- `Owner`
-- `Context Summary`
-- `Acceptance Criteria`
-- `Dependencies`
-- `Input Summary`
-- `Expected Output`
-- `Validation Needed`
-- Relacoes `Project`, `Epic` e `Story` conforme o tipo do item
-
-Observacao importante: os nomes das variaveis sugerem `database_id`, mas o adapter atual usa `parent.database_id` na criacao de pagina e `dataSources.query` no sync. Na validacao live, confirme que os IDs fornecidos sao aceitos por ambos os caminhos.
-
-## 4. Comandos locais de verificacao
-
-### 4.1 Conferir se as chaves criticas existem, sem mostrar valores
-
-```powershell
-Get-Content .env |
-  Where-Object { $_ -match '^(NOTION_|DATABASE_URL|QUEUE_DRIVER|STATE_DRIVER|SUPABASE_)' } |
-  ForEach-Object {
-    $name, $value = $_ -split '=', 2
-    $status = if ([string]::IsNullOrWhiteSpace($value)) { 'empty' } else { 'set' }
-    "{0}: {1}" -f $name, $status
-  }
+```env
+STATE_DRIVER=file
+QUEUE_DRIVER=inline
+EXECUTIVE_REPORT_INTERVAL_MINUTES=0
+GMV_STATE_FILE=.gmv/runtime-state.json
+STORY_MIRROR_DIR=docs/stories
 ```
 
-### 4.2 Subir a API e checar o health
+### Live com Notion
 
-```powershell
-npm run dev:api
+Adicione:
+
+```env
+NOTION_TOKEN=
+NOTION_PROJECTS_DATABASE_ID=
+NOTION_EPICS_DATABASE_ID=
+NOTION_STORIES_DATABASE_ID=
+NOTION_TASKS_DATABASE_ID=
 ```
 
-Em outro terminal:
+### Live com queue duravel
 
-```powershell
-Invoke-RestMethod http://localhost:3001/health | ConvertTo-Json -Depth 5
+Adicione:
+
+```env
+DATABASE_URL=
+QUEUE_DRIVER=pg-boss
 ```
 
-Esperado no live readiness:
+Mantenha `STATE_DRIVER=file` no repo atual.
 
-- `notion.enabled: true`
-- `queueDriver: "pg-boss"` para a story 2.2
-- `storage.liveDatabaseConfigured: true`
+## Checklist de readiness
 
-### 4.3 Subir o worker live
+- [ ] `.env` criado a partir de `.env.example`
+- [ ] `GMV_STATE_FILE` aponta para um caminho persistente
+- [ ] `STORY_MIRROR_DIR` aponta para um diretorio gravavel
+- [ ] Se houver Notion live, os cinco campos `NOTION_*` estao preenchidos
+- [ ] Se houver `pg-boss`, `DATABASE_URL` esta acessivel a partir do host
+- [ ] `/health` responde `ok: true`
+- [ ] `pnpm gmv:status` responde sem crash
+- [ ] `pnpm gmv:report` responde sem crash
 
-```powershell
-npm run dev:worker
+## Comandos de verificacao
+
+```bash
+curl http://localhost:3001/health
+pnpm gmv:status
+pnpm gmv:report
+pnpm gmv:sync
+pnpm gmv:queue
 ```
 
-Esperado:
+## Quando tratar como problema de ambiente
 
-- startup sem erro de conexao no PostgreSQL
-- log indicando `queueDriver: "pg-boss"`
-- log indicando `notionEnabled: true` quando o pacote Notion estiver completo
+- credencial ausente
+- URL de banco invalida
+- SSL ou firewall do banco
+- workspace do Notion sem schema esperado
+- host sem permissao para gravar `GMV_STATE_FILE`
 
-### 4.4 Rodar sync do Notion
+## Quando tratar como problema de codigo
 
-```powershell
-npm run gmv:sync
-```
+- falha reproduz no mesmo ambiente completo
+- o erro acontece tambem com `QUEUE_DRIVER=inline`
+- o runtime entra em conflito por depender de persistencia que o repo ainda nao implementa
 
-Esperado:
+## Referencias
 
-- retorno com `items`
-- story mirror preenchendo `docs/stories` para stories `ready`
-- ausencia de erro de adapter desabilitado
-
-### 4.5 Rodar o report executivo
-
-```powershell
-npm run gmv:report
-```
-
-Esperado:
-
-- KPIs consolidados
-- `missingData` diminuindo conforme o Notion live e os fluxos reais entram
-- links externos do Notion aparecendo nos objetos sincronizados
-
-## 5. Checklist objetivo do que o usuario precisa fornecer/configurar
-
-- [ ] Fornecer `NOTION_TOKEN`.
-- [ ] Fornecer `NOTION_PROJECTS_DATABASE_ID`.
-- [ ] Fornecer `NOTION_EPICS_DATABASE_ID`.
-- [ ] Fornecer `NOTION_STORIES_DATABASE_ID`.
-- [ ] Fornecer `NOTION_TASKS_DATABASE_ID`.
-- [ ] Compartilhar as quatro estruturas canonicas do Notion com a integracao usada pelo token.
-- [ ] Confirmar que o schema do Notion contem as propriedades e relacoes esperadas pelo adapter atual.
-- [ ] Fornecer `DATABASE_URL` de um PostgreSQL real ou de um projeto Supabase com acesso permitido para o worker.
-- [ ] Ajustar `QUEUE_DRIVER=pg-boss` no `.env` quando a validacao live da fila comecar.
-- [ ] Manter `STATE_DRIVER=file` por enquanto, porque persistencia em Postgres ainda nao esta ligada no bootstrap.
-- [ ] Se houver padrao corporativo de Supabase, preencher tambem `SUPABASE_URL`, `SUPABASE_ANON_KEY` e `SUPABASE_SERVICE_ROLE_KEY` para nao deixar o ambiente incompleto, mesmo que essas chaves nao sejam bloqueadoras hoje.
-- [ ] Subir `npm run dev:api` e validar `/health`.
-- [ ] Subir `npm run dev:worker` e confirmar que a fila live inicia sem erro.
-- [ ] Rodar `npm run gmv:sync` para validar 1.3, 1.4 e 1.5 com objetos reais do Notion.
-- [ ] Rodar `npm run gmv:report` para validar 4.2 com dados live.
-- [ ] Tratar a story `2.2` como parcialmente bloqueada por implementacao enquanto retries/dead-letter nao forem fechados.
-- [ ] Tratar a story `2.4` como parcialmente bloqueada por implementacao enquanto o sync-back de gates para Notion nao existir.
-- [ ] Tratar a story `4.2` como parcialmente bloqueada por implementacao se a meta incluir recorrencia/agendamento.
+- [`README.md`](../README.md)
+- [`docs/mvp-status.md`](./mvp-status.md)
+- [`docs/smoke-tests.md`](./smoke-tests.md)
+- [`docs/notion-live-contract.md`](./notion-live-contract.md)
+- [`docs/deploy-vps.md`](./deploy-vps.md)

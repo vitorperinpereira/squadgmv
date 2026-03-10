@@ -136,17 +136,35 @@ describe("executive reporting", () => {
     await context.businessFlowService.bootstrapFlow(mission.id, "marketing");
 
     const scheduler = startExecutiveReportScheduler(context);
-
-    await new Promise((resolve) => {
-      setTimeout(resolve, 150);
-    });
+    const history = await waitForReportSnapshots(context, 1, 1_500);
 
     scheduler.stop();
 
-    const history = await context.reportingService.listExecutiveReportSnapshots();
     expect(history.length).toBeGreaterThanOrEqual(1);
     expect(history[0].trigger).toBe("scheduled");
 
     await context.close();
   });
 });
+
+async function waitForReportSnapshots(
+  context: Awaited<ReturnType<typeof createRuntimeContext>>,
+  minimumSnapshots: number,
+  timeoutMs: number
+) {
+  const startedAt = Date.now();
+
+  while (Date.now() - startedAt < timeoutMs) {
+    const history = await context.reportingService.listExecutiveReportSnapshots();
+
+    if (history.length >= minimumSnapshots) {
+      return history;
+    }
+
+    await new Promise((resolve) => {
+      setTimeout(resolve, 50);
+    });
+  }
+
+  return context.reportingService.listExecutiveReportSnapshots();
+}

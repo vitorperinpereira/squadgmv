@@ -51,7 +51,7 @@
     "@vitest/coverage-v8": "4.0.18",
     "drizzle-kit": "0.31.9",
     "eslint": "10.0.3",
-    "turbo": "2.8.14",
+    "turbo": "2.8.15",
     "tsx": "4.21.0",
     "typescript": "5.9.3",
     "typescript-eslint": "8.56.1",
